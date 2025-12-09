@@ -1,97 +1,166 @@
+
 <!DOCTYPE html>
-<html>
-<head><title>Test</title></head>
-<body>
-<h1>Oyun Çalışıyor ✅</h1>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Futbol Oyunu - Tüm Takımlar</title>
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial;
-      background: darkgreen;
-      color: white;
-    }
-    select, button {
-      font-size: 16px;
-      padding: 8px;
-      margin: 5px;
-    }
-    #field {
-      width: 350px;
-      height: 200px;
-      background: #0b6623;
-      margin: auto;
-      border: 3px solid white;
-      position: relative;
-    }
-    #ball {
-      width: 30px;
-      height: 30px;
-      background: white;
-      border-radius: 50%;
-      position: absolute;
-      top: 80px;
-      left: 160px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Ultimate Futbol Oyunu</title>
+<style>
+  body { background:#116a2c; color:white; text-align:center; font-family:Arial; }
+  canvas { background:#0b6623; border:5px solid white; border-radius:15px; }
+  select { padding:10px; font-size:16px; }
+</style>
 </head>
 <body>
 
-<h1>⚽ Futbol Oyunu</h1>
-
-<p>Takımını seç:</p>
+<h1>⚽ Ultimate Futbol Oyunu</h1>
 
 <select id="team">
   <option>Galatasaray</option>
   <option>Fenerbahçe</option>
   <option>Beşiktaş</option>
-  <option>Trabzonspor</option>
   <option>Barcelona</option>
   <option>Real Madrid</option>
   <option>Manchester City</option>
-  <option>Manchester United</option>
-  <option>Liverpool</option>
-  <option>PSG</option>
   <option>Bayern Münih</option>
-  <option>Inter</option>
-  <option>Milan</option>
-  <option>Juventus</option>
-  <option>Arsenal</option>
 </select>
 
-<br><br>
-<button onclick="shoot()">Şut Çek!</button>
+<p>
+Dakika: <span id="min">0</span> |
+Skor: <span id="score">0</span> |
+Faul: <span id="foul">0</span> |
+Kart: <span id="card">Yok</span>
+</p>
 
-<h2 id="result"></h2>
-
-<div id="field">
-  <div id="ball"></div>
-</div>
+<canvas id="game" width="700" height="400"></canvas>
 
 <script>
-  function shoot() {
-    let team = document.getElementById("team").value;
-    let chance = Math.random();
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-    const ball = document.getElementById("ball");
-    const result = document.getElementById("result");
+let minute = 0, score = 0, foul = 0;
+let yellowCard = false;
 
-    if (chance > 0.5) {
-      result.innerHTML = team + " ⚽ GOOOL ATTI!";
-      ball.style.left = "310px";
-    } else {
-      result.innerHTML = team + " ❌ Kaçırdı!";
-      ball.style.left = "0px";
+let player = { x:100, y:200, r:15, speed:4 };
+let ball   = { x:130, y:200, r:10, dx:0, dy:0 };
+let goal   = { x:650, y:140, w:30, h:120 };
+let keeper = { x:630, y:160, w:15, h:60, speed:2, dir:1 };
+
+setInterval(() => {
+  minute++;
+  document.getElementById("min").innerText = minute;
+}, 1000);
+
+// Çizimler
+function drawField() {
+  ctx.fillStyle = "#0b6623";
+  ctx.fillRect(0,0,700,400);
+
+  ctx.strokeStyle="white";
+  ctx.lineWidth=4;
+  ctx.strokeRect(15,15,670,370);
+
+  ctx.beginPath();
+  ctx.arc(350,200,60,0,Math.PI*2);
+  ctx.stroke();
+
+  // Kale
+  ctx.fillStyle="white";
+  ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+}
+
+function drawPlayer() {
+  ctx.fillStyle="blue";
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawBall() {
+  ctx.fillStyle="white";
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawKeeper() {
+  ctx.fillStyle="red";
+  ctx.fillRect(keeper.x, keeper.y, keeper.w, keeper.h);
+}
+
+// Kontroller
+document.addEventListener("keydown", e => {
+  if (e.key === "w") player.y -= player.speed;
+  if (e.key === "s") player.y += player.speed;
+  if (e.key === "a") player.x -= player.speed;
+  if (e.key === "d") player.x += player.speed;
+
+  if (e.key === " ") shoot();
+});
+
+function shoot() {
+  ball.dx = 8;
+  ball.dy = (Math.random()-0.5)*4;
+}
+
+// Çarpışmalar
+function collision(a,bx,by,bw,bh) {
+  return a.x > bx && a.x < bx + bw && a.y > by && a.y < by + bh;
+}
+
+// Oyun döngüsü
+function update() {
+  drawField();
+  drawPlayer();
+  drawBall();
+  drawKeeper();
+
+  // Top hareket
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  // Kaleci hareket
+  keeper.y += keeper.speed*keeper.dir;
+  if (keeper.y < 50 || keeper.y > 300) keeper.dir *= -1;
+
+  // Kaleci topu kurtarırsa
+  if (collision(ball, keeper.x, keeper.y, keeper.w, keeper.h)) {
+    ball.dx = 0;
+    foul++;
+    document.getElementById("foul").innerText = foul;
+
+    if (foul >= 3) {
+      yellowCard = true;
+      document.getElementById("card").innerText = "Sarı Kart 🟨";
     }
   }
+
+  // Gol kontrolü
+  if (collision(ball, goal.x, goal.y, goal.w, goal.h)) {
+    score++;
+    document.getElementById("score").innerText = score;
+    resetBall();
+  }
+
+  // Top dışarı
+  if (ball.x > 700) resetBall();
+
+  requestAnimationFrame(update);
+}
+
+function resetBall() {
+  ball.x = player.x + 30;
+  ball.y = player.y;
+  ball.dx = 0;
+  ball.dy = 0;
+}
+
+update();
 </script>
+
+<p>Kontroller: W A S D = Hareket | Boşluk = Şut</p>
 
 </body>
 </html>
+
+
 
