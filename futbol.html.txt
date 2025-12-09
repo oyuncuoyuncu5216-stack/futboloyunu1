@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Futbol Oyunu - Tüm Takımlar</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      background: darkgreen;
+      color: white;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 8px;
+      margin: 5px;
+    }
+    #field {
+      width: 350px;
+      height: 200px;
+      background: #0b6623;
+      margin: auto;
+      border: 3px solid white;
+      position: relative;
+    }
+    #ball {
+      width: 30px;
+      height: 30px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 80px;
+      left: 160px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>⚽ Futbol Oyunu</h1>
+
+<p>Takımını seç:</p>
+
+<select id="team">
+  <option>Galatasaray</option>
+  <option>Fenerbahçe</option>
+  <option>Beşiktaş</option>
+  <option>Trabzonspor</option>
+  <option>Barcelona</option>
+  <option>Real Madrid</option>
+  <option>Manchester City</option>
+  <option>Manchester United</option>
+  <option>Liverpool</option>
+  <option>PSG</option>
+  <option>Bayern Münih</option>
+  <option>Inter</option>
+  <option>Milan</option>
+  <option>Juventus</option>
+  <option>Arsenal</option>
+</select>
+
+<br><br>
+<button onclick="shoot()">Şut Çek!</button>
+
+<h2 id="result"></h2>
+
+<div id="field">
+  <div id="ball"></div>
+</div>
+
+<script>
+  function shoot() {
+    let team = document.getElementById("team").value;
+    let chance = Math.random();
+
+    const ball = document.getElementById("ball");
+    const result = document.getElementById("result");
+
+    if (chance > 0.5) {
+      result.innerHTML = team + " ⚽ GOOOL ATTI!";
+      ball.style.left = "310px";
+    } else {
+      result.innerHTML = team + " ❌ Kaçırdı!";
+      ball.style.left = "0px";
+    }
+  }
+</script>
+
+</body>
+</html>
